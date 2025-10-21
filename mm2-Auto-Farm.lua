@@ -13,7 +13,7 @@
         TweenSpeed = 22
     }
     
-    loadstring(game:HttpGet("YOUR_GITHUB_URL"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/ReflexInCs/Auto-Coin-Farm/refs/heads/main/mm2-Auto-Farm.lua"))()
 ]]
 
 --// Configuration System (with defaults)
@@ -50,7 +50,7 @@ if config.AutoReexecute then
         queue_on_teleport([[
             repeat task.wait() until game:IsLoaded()
             task.wait(2)
-            loadstring(game:HttpGet("YOUR_GITHUB_RAW_URL_HERE"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ReflexInCs/Auto-Coin-Farm/refs/heads/main/mm2-Auto-Farm.lua"))()
         ]])
     end
 end
