@@ -2,30 +2,30 @@
 -- Auto-start, bottom-right toggle notification, full-body noclip
 -- Resets player when CoinCollected remote args 2 and 3 are equal
 -- Only farms if player is alive
--- Auto-reexecute and server hop support
+-- Auto-reexecute support
 
 --[[
     CONFIGURATION EXAMPLE (Set before loadstring):
     
-    getgenv().MM2Config = {
+    getgenv().AutoFarm = {
+        Enabled = true,
         AutoReexecute = true,
-        AutoHopIfMorePlayer = true,
-        MaxPlayers = 8
+        TweenSpeed = 22
     }
     
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/ReflexInCs/Auto-Coin-Farm/refs/heads/main/mm2-Auto-Farm.lua"))()
+    loadstring(game:HttpGet("YOUR_GITHUB_URL"))()
 ]]
 
 --// Configuration System (with defaults)
-if not getgenv().MM2Config then
-    getgenv().MM2Config = {
+if not getgenv().AutoFarm then
+    getgenv().AutoFarm = {
+        Enabled = true,
         AutoReexecute = true,
-        AutoHopIfMorePlayer = false,
-        MaxPlayers = 8
+        TweenSpeed = 22
     }
 end
 
-local config = getgenv().MM2Config
+local config = getgenv().AutoFarm
 
 --// Services
 local Players = game:GetService("Players")
@@ -33,11 +33,10 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TeleportService = game:GetService("TeleportService")
 
 --// Variables
 local player = Players.LocalPlayer
-local farmEnabled = true
+local farmEnabled = config.Enabled
 local noclipConnection = nil
 local currentTween = nil
 local usedCoinContainer = nil
@@ -51,44 +50,8 @@ if config.AutoReexecute then
         queue_on_teleport([[
             repeat task.wait() until game:IsLoaded()
             task.wait(2)
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/ReflexInCs/Auto-Coin-Farm/refs/heads/main/mm2-Auto-Farm.lua"))()
+            loadstring(game:HttpGet("YOUR_GITHUB_RAW_URL_HERE"))()
         ]])
-    end
-end
-
---// Server Hop Function
-local function serverHop()
-    local Http = game:GetService("HttpService")
-    local TPS = game:GetService("TeleportService")
-    local Api = "https://games.roblox.com/v1/games/"
-    
-    local _place = game.PlaceId
-    local _servers = Api.._place.."/servers/Public?sortOrder=Asc&limit=100"
-    
-    local function ListServers(cursor)
-        local Raw = game:HttpGet(_servers .. ((cursor and "&cursor="..cursor) or ""))
-        return Http:JSONDecode(Raw)
-    end
-    
-    local Server, Next
-    repeat
-        local Servers = ListServers(Next)
-        Server = Servers.data[1]
-        Next = Servers.nextPageCursor
-    until Server
-    
-    print("[AutoFarm] Hopping to new server...")
-    TPS:TeleportToPlaceInstance(_place, Server.id, player)
-end
-
---// Player Count Check
-local function checkPlayerCount()
-    if config.AutoHopIfMorePlayer then
-        local playerCount = #Players:GetPlayers()
-        if playerCount > config.MaxPlayers then
-            print("[AutoFarm] Too many players (" .. playerCount .. "/" .. config.MaxPlayers .. "), hopping server...")
-            serverHop()
-        end
     end
 end
 
@@ -131,7 +94,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -10, 0, 36)
 title.Position = UDim2.new(0, 10, 0, 6)
 title.BackgroundTransparency = 1
-title.Text = "Auto Farm: ENABLED"
+title.Text = "Auto Farm: " .. (config.Enabled and "ENABLED" or "DISABLED")
 title.TextColor3 = Color3.new(1, 1, 1)
 title.TextSize = 15
 title.Font = Enum.Font.GothamBold
@@ -141,8 +104,8 @@ title.Parent = frame
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.9, 0, 0, 28)
 toggleButton.Position = UDim2.new(0.05, 0, 0, 36)
-toggleButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-toggleButton.Text = "Disable"
+toggleButton.BackgroundColor3 = config.Enabled and Color3.fromRGB(220, 60, 60) or Color3.fromRGB(60, 200, 80)
+toggleButton.Text = config.Enabled and "Disable" or "Enable"
 toggleButton.TextColor3 = Color3.new(1, 1, 1)
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.TextSize = 14
@@ -225,7 +188,7 @@ local function farmCoins()
 
 		if coin then
 			local distance = magnitude
-			local speed = 22
+			local speed = config.TweenSpeed
 			local tweenTime = math.max(0.05, distance / speed)
 
 			if currentTween then
